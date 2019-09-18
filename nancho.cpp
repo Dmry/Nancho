@@ -3,6 +3,15 @@
 #include <cstddef>
 #include <cstdio>
 #include <iostream>
+#include <string>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+ 
+std::mutex m;
+std::condition_variable cv;
+bool ready = false;
+bool processed = false;
 
 int main() {
 
@@ -18,8 +27,18 @@ int main() {
         ::perror(dbus_error.message);
     }
 
-    pause_spotify(dbus_conn, dbus_error);
+    std::thread worker(worker_thread, dbus_conn, std::ref(dbus_error));
+    
+    // Event loop
+    while(1) {
+        // wait for the worker
+        {
+            std::unique_lock<std::mutex> lk(m);
+            cv.wait(lk, []{return processed;});
+        } 
+    }
 
+    worker.join();
 
     ::dbus_connection_unref(dbus_conn); 
 
@@ -27,7 +46,7 @@ int main() {
 }
 
 
-int pause_spotify(DBusConnection * dbus_conn_, DBusError dbus_error_) {
+int pause_spotify(DBusConnection * dbus_conn_, DBusError& dbus_error_) {
     DBusMessage * dbus_msg = nullptr;
     DBusMessage * dbus_reply = nullptr;
 
@@ -43,4 +62,31 @@ int pause_spotify(DBusConnection * dbus_conn_, DBusError dbus_error_) {
         ::perror(dbus_error_.name);
         ::perror(dbus_error_.message);
     }
+}
+ 
+void worker_thread(DBusConnection * dbus_conn_, DBusError& dbus_error_)
+{
+    // Wait until main() sends data
+    std::unique_lock<std::mutex> lk(m);
+    cv.wait(lk, []{return ready;});
+ 
+    // after the wait, we own the lock.
+    pause_spotify(dbus_conn_, dbus_error_);
+ 
+    // Send data back to main()
+    processed = true;
+ 
+    // Manual unlocking is done before notifying, to avoid waking up
+    // the waiting thread only to block again (see notify_one for details)
+    lk.unlock();
+    cv.notify_one();
+}
+
+void pulse_callback() {
+    // send data to the worker thread
+    {
+        std::lock_guard<std::mutex> lk(m);
+        ready = true;
+    }
+    cv.notify_one();
 }
