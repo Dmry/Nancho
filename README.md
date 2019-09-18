@@ -1,5 +1,5 @@
 # Nancho
 
-Requirements for compilation:
+Compilation dependencies:
 
-    `sudo apt install libdbus-1-dev libdbus-1-3`
+    sudo apt install libdbus-1-dev libpulse-dev
