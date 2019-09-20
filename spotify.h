@@ -13,7 +13,7 @@ class Spotify : public Player
         Spotify();
         ~Spotify();
 
-        void switch_state(Player::State) override;
+        void switch_state(const std::string&) override;
         Player::State fetch_status() override;
 
     private:

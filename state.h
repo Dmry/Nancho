@@ -5,18 +5,21 @@
 
 #include <memory>
 
+class State;
+
 class Machine
 {
     private:
-        class State *current;
+        class std::shared_ptr<State> current;
 
     public:
         Machine(std::shared_ptr<Player> player);
-        void set_current(State *s);
+        void set_current(std::shared_ptr<State> s);
         void play();
         void pause();
+        void fetch();
 
-        bool m_triggered;  
+        bool m_triggered; // Tracks if nancho paused the music so it doesn't start playing inadvertedly
         std::shared_ptr<Player> m_player;   
 };
 

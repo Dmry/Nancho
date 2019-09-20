@@ -21,6 +21,9 @@ void Trigger::trigger(Player::State to_state)
         case Player::State::PAUSE:
             m_machine->pause();
             break;
+        case Player::State::UNKNOWN:
+            m_machine->fetch();
+            break;
         default:
             // do nothing
             break;

@@ -8,19 +8,17 @@
 Spotify::Spotify()
     : Player(), dbus{DBus()}
 {
-    command_map[State::PLAY] = "Play";
-    command_map[State::PAUSE] = "Pause";
 }
 
 Spotify::~Spotify()
 {
 }
 
-void Spotify::switch_state(Player::State state)
+void Spotify::switch_state(const std::string& command)
 {
     DBusMessage * dbus_reply = nullptr;
     
-    DBusMessage * dbus_msg = dbus_message_new_method_call("org.mpris.MediaPlayer2.spotify", "/org/mpris/MediaPlayer2", "org.mpris.MediaPlayer2.Player", Player::command_map[state].c_str());
+    DBusMessage * dbus_msg = dbus_message_new_method_call("org.mpris.MediaPlayer2.spotify", "/org/mpris/MediaPlayer2", "org.mpris.MediaPlayer2.Player", command.c_str());
 
     dbus.send(dbus_msg, &dbus_reply);
 }

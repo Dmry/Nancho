@@ -5,21 +5,26 @@
 Machine::Machine(std::shared_ptr<Player> player)
     : m_player{player}, m_triggered{false}
 {
+    fetch();
+}
+
+void Machine::fetch()
+{
     switch(m_player->fetch_status())
     {
         case Player::State::PLAY:
-            current = new Playing();
+            current = std::make_shared<Playing>();
             break;
         case Player::State::PAUSE:
-            current = new Paused();
+            current = std::make_shared<Paused>();
             break;
         default:
-            current = new Paused();
+            current = std::make_shared<Paused>();
             break;
     }
 }
 
-void Machine::set_current(State *s)
+void Machine::set_current(std::shared_ptr<State> s)
 {
     current = s;
 }
@@ -37,13 +42,11 @@ void Machine::pause()
 // Default response, only classes that change the state will overwrite
 void State::play(Machine *m)
 {
-    std::cout << "already playing" << std::endl;
 }
 
 // Default response, only classes that change the state will overwrite
 void State::pause(Machine *m)
 {
-    std::cout << "already OFF" << std::endl;
 }
 
 Playing::Playing()
@@ -65,11 +68,11 @@ Paused::~Paused()
 //Change state from paused to playing
 void Paused::play(Machine *m)
 {
+    // Don't start playing if it wasn't paused
     if (m->m_triggered) {
-        std::cout << "going from paused to playing" << std::endl;
-        m->set_current(new Playing());
-        m->m_player->switch_state(Player::State::PLAY);
-        delete this;
+        m->set_current(std::make_shared<Playing>());
+        // delete this handled by shared pointer
+        m->m_player->switch_state("Play");
 
         m->m_triggered = false;
     }
@@ -78,10 +81,9 @@ void Paused::play(Machine *m)
 //Change state from playing to paused
 void Playing::pause(Machine *m)
 {
-    std::cout << "going from playing to paused" << std::endl;
-    m->set_current(new Paused());
-    m->m_player->switch_state(Player::State::PAUSE);
-    delete this;
+    m->set_current(std::make_shared<Paused>());
+    // delete this handled by shared pointer
+    m->m_player->switch_state("Pause");
 
     m->m_triggered = true;
 }

@@ -15,9 +15,7 @@ class Player
             UNKNOWN
         };
 
-        std::map<State, std::string> command_map;
-
-        virtual void switch_state(Player::State state) = 0;
+        virtual void switch_state(const std::string&) = 0;
         virtual Player::State fetch_status() = 0;
 };
 

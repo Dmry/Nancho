@@ -8,8 +8,6 @@
 
 #include <memory>
 
-/* #include <unistd.h> */
-
 int main(int argc, char *argv[])
 {
     std::shared_ptr<Player> player = std::make_shared<Spotify>();

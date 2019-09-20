@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <cassert>
+#include <thread>
+#include <chrono>
 
 bool PulseAudio::switch_guard = false;
 
@@ -151,25 +153,11 @@ void PulseAudio::subscribe_callback(pa_context *c, pa_subscription_event_type_t 
 {
     unsigned facility = type & PA_SUBSCRIPTION_EVENT_FACILITY_MASK;
 
-    pa_operation *op = NULL;
-
     switch (facility)
     {
         case PA_SUBSCRIPTION_EVENT_SINK_INPUT:
         {
-            if (!switch_guard)
-            {
-                pa_operation* op = pa_context_get_sink_input_info_list(c, callback, nullptr);
-                if (op)
-                    pa_operation_unref(op);
-                
-                switch_guard = true;
-            }
-            else
-            {
-                switch_guard = false;
-            }
-            
+            pa_context_get_sink_input_info(c, idx, callback, nullptr);          
             break;
         }
         default:
@@ -178,24 +166,41 @@ void PulseAudio::subscribe_callback(pa_context *c, pa_subscription_event_type_t 
             break;
         }
     }
-
-    if (op)
-        pa_operation_unref(op);
 }
 
 void PulseAudio::callback(pa_context *c, const pa_sink_input_info *i, int eol, void *userdata)
 {
-    if (!eol)
+    // Apparently PulseAudio triggers each event twice..
+    if (!switch_guard)
     {
-        std::string app(pa_proplist_gets (i->proplist, "application.process.binary"));
+        if (!eol)
+        {
+            std::string app(pa_proplist_gets (i->proplist, "application.process.binary"));
 
-        if (app == "firefox" and i->volume.values[0] != 0)
-        {
-            trigger(Player::State::PAUSE);
+            if (app == "firefox" and i->volume.values[0] != 0)
+            {
+                trigger(Player::State::PAUSE);
+            }
+
+            if (app == "firefox" and i->volume.values[0] == 0)
+            {
+                trigger(Player::State::PLAY);
+            }
+
+            // I __know__ this is highly undesirable coupling, but spotify's dbus really leaves me no other option
+            if (app == "spotify")
+            {
+                // Spotify dbus switches in the order of human time..
+                using namespace std::chrono_literals;
+                std::this_thread::sleep_for(0.1s);
+
+                trigger(Player::State::UNKNOWN);
+            }
         }
-        else
-        {
-            trigger(Player::State::PLAY);
-        }
+        switch_guard = true;
+    }
+    else
+    {
+        switch_guard = false;
     }
 }
