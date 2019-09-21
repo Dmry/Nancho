@@ -28,13 +28,14 @@ class State
         virtual void play(Machine *m);
         virtual void pause(Machine *m);
 
-        Player::State m_state;
+        Player::State m_current_state;
+        Player::State m_previous_state;
 };
 
 class Playing: public State
 {
     public:
-        Playing();
+        Playing(Player::State);
         ~Playing();
         void pause(Machine *m) override;
         // Does not override play, keeps its default behavior
@@ -43,12 +44,10 @@ class Playing: public State
 class Paused: public State
 {
     public:
-        Paused(bool triggered = true);
+        Paused(Player::State);
         ~Paused();
         void play(Machine *m) override;
         // Does not override pause, keeps its default behavior
-
-        bool m_triggered; // Tracks if nancho paused the music so it doesn't start playing inadvertedly
 };
 
 #endif

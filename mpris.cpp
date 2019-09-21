@@ -6,7 +6,7 @@
 #include <iostream>
 
 Mpris::Mpris(const std::string& player)
-    : Player("org.mpris.MediaPlayer2."+player), dbus{DBus()}
+    : Player("org.mpris.MediaPlayer2." + player), dbus{DBus()}
 {
 }
 

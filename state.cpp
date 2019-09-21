@@ -12,18 +12,18 @@ void Machine::fetch()
 {
     auto state = m_player->fetch_status();
 
-    if (!current or current->m_state != state)
+    if (!current or current->m_current_state != state)
     {
         switch(state)
         {
             case Player::State::PLAY:
-                current = std::make_shared<Playing>();
+                current = std::make_shared<Playing>(Player::State::UNKNOWN);
                 break;
             case Player::State::PAUSE:
-                current = std::make_shared<Paused>(false);
+                current = std::make_shared<Paused>(Player::State::UNKNOWN);
                 break;
             default:
-                current = std::make_shared<Paused>(false);
+                current = std::make_shared<Paused>(Player::State::UNKNOWN);
                 break;
         }
     }
@@ -54,19 +54,20 @@ void State::pause(Machine *m)
 {
 }
 
-Playing::Playing()
+Playing::Playing(Player::State previous_state)
 {
-    m_state = Player::State::PLAY;
+    m_current_state = Player::State::PLAY;
+    m_previous_state = previous_state;
 }
 
 Playing::~Playing()
 {
 }
 
-Paused::Paused(bool triggered)
-    : m_triggered{triggered}
+Paused::Paused(Player::State previous_state)
 {
-    m_state = Player::State::PAUSE;
+    m_current_state = Player::State::PAUSE;
+    m_previous_state = previous_state;
 }
 
 Paused::~Paused()
@@ -77,9 +78,9 @@ Paused::~Paused()
 void Paused::play(Machine *m)
 {
     // Don't start playing if it wasn't paused by nancho
-    if (m_triggered)
+    if (Player::State::PLAY == m_previous_state)
     {
-        m->set_current(std::make_shared<Playing>());
+        m->set_current(std::make_shared<Playing>(m_current_state));
         // delete this handled by shared pointer
         m->m_player->switch_state("Play");
     }
@@ -88,7 +89,7 @@ void Paused::play(Machine *m)
 //Change state from playing to paused
 void Playing::pause(Machine *m)
 {
-    m->set_current(std::make_shared<Paused>(true));
+    m->set_current(std::make_shared<Paused>(m_current_state));
     // delete this handled by shared pointer
     m->m_player->switch_state("Pause");
 }
