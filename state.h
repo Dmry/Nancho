@@ -4,6 +4,7 @@
 #include "mpris.h"
 
 #include <memory>
+#include <chrono>
 
 class State;
 
@@ -13,13 +14,14 @@ class Machine
         class std::shared_ptr<State> current;
 
     public:
-        Machine(std::shared_ptr<Player> player);
+        Machine(std::shared_ptr<Player> player, std::chrono::minutes cooldown = std::chrono::minutes(0));
         void set_current(std::shared_ptr<State> s);
         void play();
         void pause();
         void fetch();
 
         std::shared_ptr<Player> m_player;   
+        std::chrono::minutes m_cooldown;
 };
 
 class State
@@ -30,6 +32,8 @@ class State
 
         Player::State m_current_state;
         Player::State m_previous_state;
+
+        std::chrono::steady_clock::time_point m_time_switched;
 };
 
 class Playing: public State

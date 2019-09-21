@@ -12,6 +12,7 @@
 #include <memory>
 #include <iostream>
 #include <cstdlib>
+#include <chrono>
 
 using namespace boost;
 using namespace boost::program_options;
@@ -27,6 +28,10 @@ int main(int argc, char *argv[])
     desc.add_options()
         ("help,h",
         "Produce this help message.")
+
+        ("cooldown,c",
+        value<std::size_t>()->default_value(0),
+        "Time in minutes after which the music will no longer resume. 0 disables cooldown.")
         
         //Boost program_options doesn't play nice with sets
         ("triggers,t",
@@ -72,11 +77,13 @@ int main(int argc, char *argv[])
     {
         binaries_that_trigger_switch.emplace("firefox");
     }
+
+    size_t cooldown = vm["cooldown"].as<size_t>();
     
     std::string player_binary = vm["player"].as<std::string>();
 
     std::shared_ptr<Player> player = std::make_shared<Mpris>(player_binary);
-    std::shared_ptr<Machine> finite_state_machine = std::make_shared<Machine>(player);
+    std::shared_ptr<Machine> finite_state_machine = std::make_shared<Machine>(player, std::chrono::minutes(cooldown));
     std::shared_ptr<Trigger> trigger = std::make_shared<PulseAudio>(finite_state_machine, binaries_that_trigger_switch);
 
     int ret = trigger->run();

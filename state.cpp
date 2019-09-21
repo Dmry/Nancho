@@ -1,9 +1,9 @@
 #include "state.h"
 
-#include <chrono>
+#include <iostream> //REMOVE
 
-Machine::Machine(std::shared_ptr<Player> player)
-    : m_player{player}
+Machine::Machine(std::shared_ptr<Player> player, std::chrono::minutes cooldown)
+    : m_cooldown{cooldown}, m_player{player}
 {
     fetch();
 }
@@ -58,6 +58,7 @@ Playing::Playing(Player::State previous_state)
 {
     m_current_state = Player::State::PLAY;
     m_previous_state = previous_state;
+    m_time_switched = std::chrono::steady_clock::now();
 }
 
 Playing::~Playing()
@@ -68,6 +69,7 @@ Paused::Paused(Player::State previous_state)
 {
     m_current_state = Player::State::PAUSE;
     m_previous_state = previous_state;
+    m_time_switched = std::chrono::steady_clock::now();
 }
 
 Paused::~Paused()
@@ -77,8 +79,16 @@ Paused::~Paused()
 //Change state from paused to playing
 void Paused::play(Machine *m)
 {
+    bool cooldown_passed{false};
+
+    if (m->m_cooldown != std::chrono::minutes(0))
+    {
+        m->m_cooldown > std::chrono::steady_clock::now() - m_time_switched ? cooldown_passed = false : cooldown_passed = true; 
+    }
+
     // Don't start playing if it wasn't paused by nancho
-    if (Player::State::PLAY == m_previous_state)
+    if (Player::State::PLAY == m_previous_state
+    and not cooldown_passed)
     {
         m->set_current(std::make_shared<Playing>(m_current_state));
         // delete this handled by shared pointer
