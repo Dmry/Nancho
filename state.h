@@ -1,7 +1,7 @@
 #ifndef STATE_H
 #define STATE_H
 
-#include "spotify.h"
+#include "mpris.h"
 
 #include <memory>
 

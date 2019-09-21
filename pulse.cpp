@@ -192,7 +192,7 @@ void PulseAudio::callback(pa_context *c, const pa_sink_input_info *i, int eol, v
             // I __know__ this is highly undesirable coupling, but spotify's dbus really leaves me no other option
             else
             {
-                // Spotify dbus switches in the order of human time..
+                // Mpris dbus switches in the order of human time..
                 using namespace std::chrono_literals;
                 std::this_thread::sleep_for(0.1s);
 

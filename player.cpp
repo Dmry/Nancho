@@ -1,6 +1,9 @@
 #include "player.h"
 
-Player::Player()
+#include <string>
+
+Player::Player(const std::string& player)
+    : m_player{player}
 {
 }
 

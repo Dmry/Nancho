@@ -7,11 +7,11 @@
 
 #include <string>
 
-class Spotify : public Player
+class Mpris : public Player
 {
     public:
-        Spotify();
-        ~Spotify();
+        Mpris(const std::string& player);
+        ~Mpris();
 
         void switch_state(const std::string&) override;
         Player::State fetch_status() override;

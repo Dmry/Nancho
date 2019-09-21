@@ -1,32 +1,32 @@
-#include "spotify.h"
+#include "mpris.h"
 
 #include <algorithm>
 
 //remove:
 #include <iostream>
 
-Spotify::Spotify()
-    : Player(), dbus{DBus()}
+Mpris::Mpris(const std::string& player)
+    : Player("org.mpris.MediaPlayer2."+player), dbus{DBus()}
 {
 }
 
-Spotify::~Spotify()
+Mpris::~Mpris()
 {
 }
 
-void Spotify::switch_state(const std::string& command)
+void Mpris::switch_state(const std::string& command)
 {
     DBusMessage * dbus_reply = nullptr;
     
-    DBusMessage * dbus_msg = dbus_message_new_method_call("org.mpris.MediaPlayer2.spotify", "/org/mpris/MediaPlayer2", "org.mpris.MediaPlayer2.Player", command.c_str());
+    DBusMessage * dbus_msg = dbus_message_new_method_call(m_player.c_str(), "/org/mpris/MediaPlayer2", "org.mpris.MediaPlayer2.Player", command.c_str());
 
     dbus.send(dbus_msg, &dbus_reply);
 }
 
-Player::State Spotify::fetch_status()
+Player::State Mpris::fetch_status()
 {
     DBusMessage * dbus_reply = nullptr;
-    DBusMessage * dbus_msg = dbus_message_new_method_call("org.mpris.MediaPlayer2.spotify", "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "Get");
+    DBusMessage * dbus_msg = dbus_message_new_method_call(m_player.c_str(), "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "Get");
 
     const char *player = "org.mpris.MediaPlayer2.Player";
     const char *status = "PlaybackStatus";
