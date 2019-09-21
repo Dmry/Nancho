@@ -1,4 +1,7 @@
 #include <dbus/dbus.h>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/variables_map.hpp>
 
 #include "nancho.h"
 #include "player.h"
@@ -6,22 +9,19 @@
 #include "state.h"
 #include "pulse.h"
 
-#include <boost/program_options/options_description.hpp>
-#include <boost/program_options/parsers.hpp>
-#include <boost/program_options/variables_map.hpp>
+#include <memory>
+#include <iostream>
+#include <cstdlib>
 
 using namespace boost;
 using namespace boost::program_options;
-
-#include <memory>
-#include <iostream>
 
 int main(int argc, char *argv[])
 {
     using String_list = std::vector<std::string>;
 
     options_description desc(
-    "\nAutomatically pause music player when a trigger starts playing sound."
+    "Automatically pause music player when a trigger starts playing sound."
     "\n\nAllowed arguments");
 
     desc.add_options()
@@ -49,12 +49,16 @@ int main(int argc, char *argv[])
     {
         std::cout << std::endl << e.what() << std::endl;
         std::cout << desc << std::endl;
+
+        exit(0);
     }
 
     if (vm.count("help"))
     {
         std::cout << std::endl;
         std::cout << desc << std::endl;
+
+        exit(0);
     }
 
     Trigger::Trigger_set binaries_that_trigger_switch;
