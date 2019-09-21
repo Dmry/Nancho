@@ -7,8 +7,8 @@
 
 bool PulseAudio::switch_guard = false;
 
-PulseAudio::PulseAudio(std::shared_ptr<Machine> fsm)
-    : Trigger(fsm), _mainloop{nullptr}, _mainloop_api{nullptr}, _context{nullptr}, _signal{nullptr}
+PulseAudio::PulseAudio(std::shared_ptr<Machine> fsm, const Trigger_set& triggers)
+    : Trigger(fsm, triggers), _mainloop{nullptr}, _mainloop_api{nullptr}, _context{nullptr}, _signal{nullptr}
 {
     initialize();
 }
@@ -177,18 +177,20 @@ void PulseAudio::callback(pa_context *c, const pa_sink_input_info *i, int eol, v
         {
             std::string app(pa_proplist_gets (i->proplist, "application.process.binary"));
 
-            if (app == "firefox" and i->volume.values[0] != 0)
+            auto it = m_triggers.find(app);
+
+            if (it != m_triggers.end() and i->volume.values[0] != 0)
             {
                 trigger(Player::State::PAUSE);
             }
 
-            if (app == "firefox" and i->volume.values[0] == 0)
+            else if (it != m_triggers.end() and i->volume.values[0] == 0)
             {
                 trigger(Player::State::PLAY);
             }
 
             // I __know__ this is highly undesirable coupling, but spotify's dbus really leaves me no other option
-            if (app == "spotify")
+            else
             {
                 // Spotify dbus switches in the order of human time..
                 using namespace std::chrono_literals;

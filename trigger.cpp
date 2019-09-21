@@ -1,9 +1,17 @@
 #include "trigger.h"
 
-std::shared_ptr<Machine> Trigger::m_machine{nullptr};
+/*
+    Seems redundant, but standardizes the way triggers are handled across
+    libraries that trigger events. Ensures all those have a common interface
+    to trigger the state machine.
+*/
 
-Trigger::Trigger(std::shared_ptr<Machine> fsm)
+std::shared_ptr<Machine> Trigger::m_machine{nullptr};
+Trigger::Trigger_set Trigger::m_triggers;
+
+Trigger::Trigger(std::shared_ptr<Machine> fsm, const Trigger_set& triggers)
 {
+    Trigger::m_triggers = triggers;
     Trigger::m_machine = fsm;
 }
 

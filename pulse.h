@@ -17,13 +17,14 @@ class PulseAudio : public Trigger
         static bool switch_guard;
 
     public:
-        PulseAudio(std::shared_ptr<Machine> fsm);
+        PulseAudio(std::shared_ptr<Machine> fsm, const Trigger_set& triggers);
+        ~PulseAudio();
 
         bool initialize();
         int run() override;
         void quit(int ret = 0);
         void destroy();
-        ~PulseAudio();
+        
 
     private:
 

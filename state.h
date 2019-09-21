@@ -19,7 +19,6 @@ class Machine
         void pause();
         void fetch();
 
-        bool m_triggered; // Tracks if nancho paused the music so it doesn't start playing inadvertedly
         std::shared_ptr<Player> m_player;   
 };
 
@@ -28,6 +27,8 @@ class State
     public:
         virtual void play(Machine *m);
         virtual void pause(Machine *m);
+
+        Player::State m_state;
 };
 
 class Playing: public State
@@ -42,10 +43,12 @@ class Playing: public State
 class Paused: public State
 {
     public:
-        Paused();
+        Paused(bool triggered = true);
         ~Paused();
         void play(Machine *m) override;
         // Does not override pause, keeps its default behavior
+
+        bool m_triggered; // Tracks if nancho paused the music so it doesn't start playing inadvertedly
 };
 
 #endif
