@@ -5,7 +5,8 @@
 #include <thread>
 #include <chrono>
 
-bool PulseAudio::switch_guard = false;
+bool PulseAudio::_switch_guard = false;
+std::set<int> PulseAudio::_playing;
 
 PulseAudio::PulseAudio(std::shared_ptr<Machine> fsm, const Trigger_set& triggers)
     : Trigger(fsm, triggers), _mainloop{nullptr}, _mainloop_api{nullptr}, _context{nullptr}, _signal{nullptr}
@@ -171,7 +172,7 @@ void PulseAudio::subscribe_callback(pa_context *c, pa_subscription_event_type_t 
 void PulseAudio::callback(pa_context *c, const pa_sink_input_info *i, int eol, void *userdata)
 {
     // Apparently PulseAudio triggers each event twice..
-    if (!switch_guard)
+    if (!_switch_guard)
     {
         if (!eol)
         {
@@ -182,11 +183,16 @@ void PulseAudio::callback(pa_context *c, const pa_sink_input_info *i, int eol, v
             if (it != m_triggers.end() and i->volume.values[0] != 0)
             {
                 trigger(Player::State::PAUSE);
+                _playing.emplace(i->index);
             }
 
             else if (it != m_triggers.end() and i->volume.values[0] == 0)
             {
-                trigger(Player::State::PLAY);
+                _playing.erase(i->index);
+                if (_playing.empty())
+                {
+                    trigger(Player::State::PLAY);
+                }
             }
 
             // I __know__ this is highly undesirable coupling, but spotify's dbus really leaves me no other option
@@ -199,10 +205,10 @@ void PulseAudio::callback(pa_context *c, const pa_sink_input_info *i, int eol, v
                 trigger(Player::State::UNKNOWN);
             }
         }
-        switch_guard = true;
+        _switch_guard = true;
     }
     else
     {
-        switch_guard = false;
+        _switch_guard = false;
     }
 }

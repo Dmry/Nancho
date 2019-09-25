@@ -6,6 +6,7 @@
 #include "trigger.h"
 
 #include <csignal>
+#include <set>
 
 class PulseAudio : public Trigger
 {
@@ -14,7 +15,8 @@ class PulseAudio : public Trigger
         pa_mainloop_api* _mainloop_api;
         pa_context* _context;
         pa_signal_event* _signal;
-        static bool switch_guard;
+        static bool _switch_guard;
+        static std::set<int> _playing;
 
     public:
         PulseAudio(std::shared_ptr<Machine> fsm, const Trigger_set& triggers);
