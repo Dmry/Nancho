@@ -10,6 +10,8 @@ Compilation dependencies:
 
     sudo apt install libdbus-1-dev libpulse-dev libboost-program-options-dev
 
-Run:
-
-    ./nancho -c [cooldown time in minutes] -t [player binary name] -t [trigger binary names]
+Allowed arguments:
+    -h [ --help ]                  Produce this help message.
+    -c [ --cooldown ] arg (=0)     Time in minutes after which the music will no longer resume. 0 disables cooldown.
+    -t [ --triggers ] arg          Names of the binaries that trigger a switch.
+    -p [ --player ] arg (=spotify) Name of the binary that is controlled by the switch.
