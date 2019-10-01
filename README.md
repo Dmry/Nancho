@@ -1,6 +1,6 @@
 # Nancho
 
-Uses code from:
+Uses code adapted from:
 
     dbus-print-message by Philip Blundell (GPL)
     pulsetest by Jason White (Public Domain)
