@@ -9,3 +9,7 @@ Uses code adapted from:
 Compilation dependencies:
 
     sudo apt install libdbus-1-dev libpulse-dev libboost-program-options-dev
+
+Run:
+
+    ./nancho -c [cooldown time in minutes] -t [player binary name] -t [trigger binary names]
