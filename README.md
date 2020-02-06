@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Dmry/Nancho.svg?branch=master)](https://travis-ci.org/Dmry/Nancho)
+
 # Nancho
 
 Uses code adapted from:
