@@ -1,0 +1,12 @@
+language: cpp
+
+addons:
+  apt:
+    update: true
+    packages:
+      - libdbus-1-dev
+      - libpulse-dev
+      - libboost-program-options-dev
+      
+compiler: gcc
+script: make
