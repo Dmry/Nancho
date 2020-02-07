@@ -10,27 +10,22 @@ Uses code adapted from:
 
 Compilation dependencies:
 
-    `sudo apt install libdbus-1-dev libpulse-dev`
-    `sudo pacman -S dbus pulseaudio`
+    sudo apt install libdbus-1-dev libpulse-dev
+    sudo pacman -S dbus pulseaudio
 
 Compile:
 
-    From the nancho root folder, as root:
+From the nancho root folder, as root:
 
-    ```
     mkdir build
     cd build
     cmake ..
     cd .. && make install
     cp ../nancho.service /etc/systemd/user/nancho.service
-    ```
 
-    Then as normal user:
+Then as normal user:
 
-    ```
     systemctl --user enable nancho
-    ```
-
 
 Allowed arguments:
 ```
