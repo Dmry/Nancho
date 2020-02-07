@@ -28,7 +28,6 @@ class PulseAudio : public Trigger
         
 
     private:
-
         static void exit_signal_callback(pa_mainloop_api *m, pa_signal_event *e, int sig, void *userdata);
         static void context_state_callback(pa_context *c, void *userdata);
         static void subscribe_callback(pa_context *c, pa_subscription_event_type_t type, uint32_t idx, void *userdata);
