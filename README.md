@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/Dmry/Nancho.svg?branch=master)](https://travis-ci.org/Dmry/Nancho)
+[![Build Status](https://travis-ci.org/Dmry/Nancho.svg?branch=master)](https://travis-ci.org/Dmry/Nancho) [![CodeFactor](https://www.codefactor.io/repository/github/dmry/nancho/badge)](https://www.codefactor.io/repository/github/dmry/nancho)
 
 # Nancho
 
