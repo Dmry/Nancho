@@ -19,17 +19,20 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra")
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS "")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 
 file(GLOB nancho_SRC
-    "*.h"
-    "*.cpp"
+    "src/*.h"
+    "src/*.cpp"
 )
 
 add_executable(nancho ${nancho_SRC})
 
 target_link_libraries(nancho ${DBUS_LIBRARIES})
 target_link_libraries(nancho ${PULSE_LIBRARIES})
+
+install(TARGETS nancho
+        RUNTIME DESTINATION /usr/bin/)
