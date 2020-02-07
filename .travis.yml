@@ -17,6 +17,8 @@ matrix:
           update: true
           packages:
             - clang-9
+            - libdbus-1-dev
+            - libpulse-dev
       env:
         - MATRIX_EVAL="CC=clang-9 && CXX=clang++99"
 
