@@ -14,10 +14,11 @@ matrix:
     - os: bionic
       addons:
         apt:
+          update: true
           packages:
-            - clang-7.0
+            - clang-9
       env:
-        - MATRIX_EVAL="CC=clang-7.0 && CXX=clang++-7.0"
+        - MATRIX_EVAL="CC=clang-9 && CXX=clang++99"
 
 before_script:
   - mkdir build
