@@ -5,7 +5,6 @@
 #include <thread>
 #include <chrono>
 
-bool PulseAudio::_switch_guard = false;
 std::set<int> PulseAudio::_playing;
 
 PulseAudio::PulseAudio(std::shared_ptr<Machine> fsm, const Trigger_set& triggers)
@@ -171,44 +170,36 @@ void PulseAudio::subscribe_callback(pa_context *c, pa_subscription_event_type_t 
 
 void PulseAudio::callback(pa_context *c, const pa_sink_input_info *i, int eol, void *userdata)
 {
-    // Apparently PulseAudio triggers each event twice..
-    if (!_switch_guard)
+    if (!eol)
     {
-        if (!eol)
+        // i refers to what might be a trigger
+        std::string app(pa_proplist_gets (i->proplist, "application.process.binary"));
+
+        auto it = m_triggers.find(app);
+
+        // Corked: means stream is temporarily paused, e.g. firefox pausing a video stream
+        if (it != m_triggers.end() and i->volume.values[0] != 0 and i->corked == 0)
         {
-            std::string app(pa_proplist_gets (i->proplist, "application.process.binary"));
-
-            auto it = m_triggers.find(app);
-
-            if (it != m_triggers.end() and i->volume.values[0] != 0)
+            trigger(Player::State::PAUSE);
+            _playing.emplace(i->index);
+        }
+        else if (it != m_triggers.end() and (i->volume.values[0] == 0 or i->corked == 1))
+        {
+            _playing.erase(i->index);
+            if (_playing.empty())
             {
-                trigger(Player::State::PAUSE);
-                _playing.emplace(i->index);
-            }
-
-            else if (it != m_triggers.end() and i->volume.values[0] == 0)
-            {
-                _playing.erase(i->index);
-                if (_playing.empty())
-                {
-                    trigger(Player::State::PLAY);
-                }
-            }
-
-            // I __know__ this is highly undesirable coupling, but spotify's dbus really leaves me no other option
-            else
-            {
-                // Mpris dbus switches in the order of human time..
-                using namespace std::chrono_literals;
-                std::this_thread::sleep_for(0.1s);
-
-                trigger(Player::State::UNKNOWN);
+                trigger(Player::State::PLAY);
             }
         }
-        _switch_guard = true;
-    }
-    else
-    {
-        _switch_guard = false;
+
+        // I __know__ this is highly undesirable coupling, but spotify's dbus really leaves me no other option
+        else
+        {
+            // Mpris dbus switches in the order of human time..
+            using namespace std::chrono_literals;
+            std::this_thread::sleep_for(0.1s);
+
+            trigger(Player::State::UNKNOWN);
+        }
     }
 }

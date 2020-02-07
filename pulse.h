@@ -15,7 +15,6 @@ class PulseAudio : public Trigger
         pa_mainloop_api* _mainloop_api;
         pa_context* _context;
         pa_signal_event* _signal;
-        static bool _switch_guard;
         static std::set<int> _playing;
 
     public:
