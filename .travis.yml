@@ -11,7 +11,7 @@ matrix:
             - libpulse-dev
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-    - os: bionic
+    - dist: bionic
       addons:
         apt:
           update: true
