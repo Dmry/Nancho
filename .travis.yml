@@ -2,10 +2,11 @@ language: cpp
 
 matrix:
   include:
-    # works on Precise and Trusty
     - dist: bionic
       addons:
         apt:
+          sources:
+            - ubuntu-toolchain-r-test
           packages:
             - g++-7
       env:
@@ -23,5 +24,8 @@ before_script:
   - cd build
   - cmake ..
   - eval "${MATRIX_EVAL}"
+
+script:
+  - make
       
 
