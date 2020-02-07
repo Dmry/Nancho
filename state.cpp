@@ -1,9 +1,7 @@
 #include "state.h"
 
-#include <iostream> //REMOVE
-
 Machine::Machine(std::shared_ptr<Player> player, std::chrono::minutes cooldown)
-    : m_cooldown{cooldown}, m_player{player}
+    : m_player{player}, m_cooldown{cooldown}
 {
     fetch();
 }
@@ -45,12 +43,12 @@ void Machine::pause()
 }
 
 // Default response, only classes that change the state will overwrite
-void State::play(Machine *m)
+void State::play(Machine *m [[maybe_unused]])
 {
 }
 
 // Default response, only classes that change the state will overwrite
-void State::pause(Machine *m)
+void State::pause(Machine *m [[maybe_unused]])
 {
 }
 
