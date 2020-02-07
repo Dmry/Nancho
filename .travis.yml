@@ -6,7 +6,11 @@ addons:
     packages:
       - libdbus-1-dev
       - libpulse-dev
-      - libboost-program-options-dev
+
+before_script:
+  - mkdir build
+  - cd build
+  - cmake ..
       
 compiler: gcc
 script: make
