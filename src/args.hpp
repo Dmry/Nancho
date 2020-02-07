@@ -122,7 +122,6 @@ std::vector<std::string> wrap(const std::string& text, unsigned int line_length 
             line.clear();
         }
         line += word + " ";
-
     } while (iss);
 
     if (!line.empty())
