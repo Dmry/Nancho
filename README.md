@@ -8,14 +8,19 @@ Uses code adapted from:
     pulsetest by Jason White (Public Domain)
     dbus-sample by MakerCrew on GitHub (MIT license)
 
-Compilation dependencies:
+### Compilation dependencies
+
+Ubuntu
 
     sudo apt install libdbus-1-dev libpulse-dev
+
+Arch linux
+
     sudo pacman -S dbus pulseaudio
 
-Compile:
+### Compile and install
 
-From the nancho root folder, as root:
+From the nancho root folder, as root
 
     mkdir build
     cd build
@@ -23,11 +28,13 @@ From the nancho root folder, as root:
     cd .. && make install
     cp ../nancho.service /etc/systemd/user/nancho.service
 
-Then as normal user:
+Then as normal user
 
     systemctl --user enable nancho
 
-Allowed arguments:
+### Running from commandline
+
+Allowed arguments
 ```
 -h [ --help ]                  Produce this help message.  
 -c [ --cooldown ] arg (=0)     Time in minutes after which the music will no longer resume. 0 disables cooldown.  
