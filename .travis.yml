@@ -5,19 +5,12 @@ matrix:
     - dist: bionic
       addons:
         apt:
-          sources:
-            - ubuntu-toolchain-r-test
           packages:
             - g++-7
+            - libdbus-1-dev
+            - libpulse-dev
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-
-addons:
-  apt:
-    update: true
-    packages:
-      - libdbus-1-dev
-      - libpulse-dev
 
 before_script:
   - mkdir build
