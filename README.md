@@ -2,6 +2,8 @@
 
 # Nancho
 
+Automatically pause music players like spotify when another application (e.g. your browser) starts playing sound.
+
 Uses code adapted from:
 
     dbus-print-message by Philip Blundell (GPL)
