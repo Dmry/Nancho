@@ -1,0 +1,9 @@
+[Unit]
+Description=Nancho
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/nancho
+
+[Install]
+WantedBy=multi-user.target
