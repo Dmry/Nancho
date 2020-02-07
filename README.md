@@ -2,13 +2,7 @@
 
 # Nancho
 
-Automatically pause music players like spotify when another application (e.g. your browser) starts playing sound.
-
-Uses code adapted from:
-
-    dbus-print-message by Philip Blundell (GPL)
-    pulsetest by Jason White (Public Domain)
-    dbus-sample by MakerCrew on GitHub (MIT license)
+Automatically pause MPRIS music players (e.g. spotify) when another application (e.g. your browser) starts playing sound.
 
 ### Compilation dependencies
 
@@ -43,3 +37,11 @@ Allowed arguments
 -t [ --triggers ] arg          Names of the binaries that trigger a switch.  
 -p [ --player ] arg (=spotify) Name of the binary that is controlled by the switch.
 ```
+
+### Acknowledgements
+
+Uses code adapted from:
+
+    dbus-print-message by Philip Blundell (GPL)
+    pulsetest by Jason White (Public Domain)
+    dbus-sample by MakerCrew on GitHub (MIT license)
