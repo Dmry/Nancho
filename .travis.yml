@@ -11,6 +11,13 @@ matrix:
             - libpulse-dev
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+    - os: bionic
+      addons:
+        apt:
+          packages:
+            - clang-7.0
+      env:
+        - MATRIX_EVAL="CC=clang-7.0 && CXX=clang++-7.0"
 
 before_script:
   - mkdir build
