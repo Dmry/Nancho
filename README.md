@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/Dmry/Nancho.svg?branch=master)](https://travis-ci.org/Dmry/Nancho) [![CodeFactor](https://www.codefactor.io/repository/github/dmry/nancho/badge)](https://www.codefactor.io/repository/github/dmry/nancho)
+[![Build Status](https://travis-ci.org/Dmry/Nancho.svg?branch=master)](https://travis-ci.org/Dmry/Nancho) [![CodeFactor](https://www.codefactor.io/repository/github/dmry/nancho/badge)](https://www.codefactor.io/repository/github/dmry/nancho) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 # Nancho
 
