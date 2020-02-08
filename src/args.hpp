@@ -1,6 +1,6 @@
 /*=============================================================================
     Copyright (c) 2016 Paul Fultz II
-    C++17 implementation by Daniël Emmery
+    C++17 implementation and adaptations by Daniël Emmery
     args.hpp
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -66,6 +66,11 @@ namespace args {
 template<class T>
 struct is_container
 : decltype(adl_args::is_container(args::rank<1>{}, std::declval<T>()))
+{};
+
+template<>
+struct is_container<std::string>
+: std::false_type
 {};
 
 template<class Range>
@@ -324,6 +329,12 @@ struct context
     std::vector<argument> arguments;
     std::unordered_map<std::string, int> lookup;
     subcommand_map subcommands;
+    std::string name;
+
+    bool has_subcommand(const std::string& argv)
+    {
+        return subcommands.find(argv) != subcommands.end() and argv != name;
+    }
 
     void add(argument arg)
     {
@@ -350,7 +361,7 @@ struct context
     {
         if (lookup.find(flag) == lookup.end())
         {
-            throw std::runtime_error("unknown flag: " + flag);
+            throw std::runtime_error(name + ": unknown flag: " + flag);
         }
         //else
         return arguments[lookup.at(flag)];
@@ -360,7 +371,7 @@ struct context
     {
         if (lookup.find(flag) == lookup.end())
         {
-            throw std::runtime_error("unknown flag: " + flag);
+            throw std::runtime_error(name + ": unknown flag: " + flag);
         }
         //else
         return arguments[lookup.at(flag)];
@@ -531,6 +542,7 @@ template<class... Ts, class T>
 context<T&, Ts...> build_context(T& cmd)
 {
     context<T&, Ts...> ctx;
+    ctx.name = get_name<T>();
     args::assign_subcommands(rank<1>{}, ctx, cmd);
     ctx.parse(nullptr, "-h", "--help", args::help("Show help"), 
         args::eager_callback([](std::nullptr_t, const auto& c, const argument&)
@@ -592,36 +604,21 @@ void parse(T& cmd, std::deque<std::string> a, Ts&&... xs)
     std::string core;
     for(auto&& x:a)
     {
-        if (auto it = ctx.subcommands.find(x);
-            it != ctx.subcommands.end() and x != get_name<T>())
+        if (ctx.has_subcommand(x))
         {
-            try
-            {
-                ctx.subcommands[x].run(drop(a), cmd, xs...);
-            }
-            catch(const std::exception& ex)
-            {
-                throw std::runtime_error(x + ": " + ex.what());
-            }
-
+            ctx.subcommands[x].run(drop(a), cmd, xs...);
             return;
         } 
         if (x[0] == '-')
         {
+            capture = false;
             std::string value;
             std::tie(core, value) = args::parse_attached_value(x);
 
             if (ctx[core].type == argument_type::none)
             {
-                capture = false;
                 ctx[core].write("");
                 if (core == "-h" or core == "--help") return;
-                for(auto&& c:value) if (ctx[std::string("-") + c].write("")) return;
-            }
-            else if (not value.empty())
-            {
-                capture = false;
-                if (ctx[core].write(value)) return;
             }
             else
             {
@@ -635,8 +632,20 @@ void parse(T& cmd, std::deque<std::string> a, Ts&&... xs)
         }
         else
         {
-            throw std::runtime_error("unknown command: " + x);
+            if (core.empty())
+            {
+                throw std::runtime_error("unknown command: " + x);
+            }
+            if (ctx[core].type == argument_type::none)
+            {
+                throw std::runtime_error("flag: " + core + " does not expect an argument.");
+            }
+            if (ctx[core].type != argument_type::multiple)
+            {
+                throw std::runtime_error("flag: " + core + " expects only one argument.");
+            }
         }
+
 
         a.pop_front();
     }
