@@ -26,8 +26,8 @@ struct nancho : args::group<nancho>
     size_t delay;
     
     nancho() :
-        player_binary{"spotify"},
-        binaries_that_trigger_switch{"firefox"},
+        player_binary{},
+        binaries_that_trigger_switch{},
         cooldown{0},
         delay{0}
     {}
@@ -43,8 +43,18 @@ struct nancho : args::group<nancho>
 
     void run()
     {
+        if (binaries_that_trigger_switch.empty())
+        {
+            binaries_that_trigger_switch.insert("firefox");
+        }
+
+        if (player_binary.empty())
+        {
+            player_binary = "spotify";
+        }
+
         std::shared_ptr<Player> player = std::make_shared<Mpris>(player_binary);
-        std::shared_ptr<Machine> finite_state_machine = std::make_shared<Machine>(player, std::chrono::minutes(cooldown));
+        std::shared_ptr<Machine> finite_state_machine = std::make_shared<Machine>(player, std::chrono::minutes(cooldown), std::chrono::seconds(delay));
         std::shared_ptr<Trigger> trigger = std::make_shared<PulseAudio>(finite_state_machine, binaries_that_trigger_switch);
 
         trigger->run();
