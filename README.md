@@ -21,8 +21,8 @@ From the nancho root folder, as root
     mkdir build
     cd build
     cmake ..
-    cd .. && make install
-    cp nancho.service /etc/systemd/user/nancho.service
+    make install
+    cp ../nancho.service /etc/systemd/user/nancho.service
 
 Then as normal user
 
