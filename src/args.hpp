@@ -193,7 +193,9 @@ template<class T>
 std::string get_command_type_name()
 {
     std::string name = args::get_type_name<T>();
-    if (auto i = name.find("::"); i != std::string::npos) name = name.substr(i+2);
+    auto i = name.find("::");
+    if (i != std::string::npos) name = name.substr(i+2);
+    if (name.back() == '&') name.pop_back();
     return trim(name, [](char c) { return c == '_'; });
 }
 
@@ -281,7 +283,7 @@ struct argument
 
     int count = 0;
     bool required = false;
-    std::function<void(std::string)> write_value;
+    std::function<void(const std::string&)> write_value;
     std::vector<std::function<void(const argument&)>> callbacks;
     std::vector<std::function<void(const argument&)>> eager_callbacks;
     std::string help, metavar;
@@ -321,6 +323,9 @@ struct subcommand
     std::function<void(std::deque<std::string>, Args...)> run;
 };
 
+template<class T, class... Args>
+auto current_name() {return get_name<T>();}
+
 template<class... Args>
 struct context
 {
@@ -329,11 +334,15 @@ struct context
     std::vector<argument> arguments;
     std::unordered_map<std::string, int> lookup;
     subcommand_map subcommands;
-    std::string name;
 
     bool has_subcommand(const std::string& argv)
     {
-        return subcommands.find(argv) != subcommands.end() and argv != name;
+        return subcommands.find(argv) != subcommands.end() and argv != current_name<Args...>();
+    }
+
+    bool has_default_capture()
+    {
+        return lookup.find("") != lookup.end();
     }
 
     void add(argument arg)
@@ -351,7 +360,7 @@ struct context
         arg.type = args::get_argument_type(x);
         arg.metavar = args::type_to_help(x);
         args::each_arg(args::overload(
-            [&, this](const std::string& name) { arg.flags.push_back(name); },
+            [&](const std::string& name) { arg.flags.push_back(name); },
             [&, this](auto&& attribute) -> decltype(attribute(x, *this, arg), void()) { attribute(x, *this, arg); }
         ), std::forward<Ts>(xs)...);
         this->add(std::move(arg));
@@ -361,7 +370,7 @@ struct context
     {
         if (lookup.find(flag) == lookup.end())
         {
-            throw std::runtime_error(name + ": unknown flag: " + flag);
+            throw std::runtime_error(current_name<Args...>() + ": unknown flag: " + flag);
         }
         //else
         return arguments[lookup.at(flag)];
@@ -371,18 +380,18 @@ struct context
     {
         if (lookup.find(flag) == lookup.end())
         {
-            throw std::runtime_error(name + ": unknown flag: " + flag);
+            throw std::runtime_error(current_name<Args...>() + ": unknown flag: " + flag);
         }
         //else
         return arguments[lookup.at(flag)];
     }
 
-    void show_help_col(const std::string& item, const std::string& help, int width, int total_width) const
+    void show_help_col(std::string item, std::string help, int width, int total_width) const
     {
         auto txt = args::wrap(help, total_width-width-2);
         assert(!txt.empty());
-        std::cout << " " << std::setw(width) << item << " " << txt[0] << std::endl;
-        std::for_each(txt.begin()+1, txt.end(), [&](const std::string& line)
+        std::cout << std::left << " " << std::setw(width) << item << " " << txt[0] << std::endl;
+        std::for_each(txt.begin()+1, txt.end(), [&](std::string line)
         {
             std::cout << " " << std::setw(width) << " " << " " << line << std::endl;
         });
@@ -400,11 +409,9 @@ struct context
             flags.push_back(std::move(flag));
         }
         for(auto&& p:subcommands) width = std::max(width, int(p.first.size()));
-        std::cout << "Usage: " << name;
+        std::cout << "Usage: " << name << " " << options_metavar;
 
         if (subcommands.size() > 0) std::cout << " [command]";
-
-        std::cout << " " << options_metavar;
         if (lookup.count("") > 0) std::cout << " " << (*this)[""].metavar;
         
         std::cout << std::endl; 
@@ -463,6 +470,12 @@ auto eager_callback(F f)
 }
 
 template<class F>
+auto simple_callback(F f)
+{
+    return args::callback(std::bind(f));
+}
+
+template<class F>
 auto action(F f)
 {
     return args::eager_callback(std::bind(f));
@@ -482,9 +495,7 @@ auto required()
         a.add_callback([](const argument& arg)
         {
             if (arg.required and arg.count == 0)
-            {
                 throw std::runtime_error("required arg missing: " + arg.get_flags());
-            }
         });
     };
 }
@@ -542,7 +553,6 @@ template<class... Ts, class T>
 context<T&, Ts...> build_context(T& cmd)
 {
     context<T&, Ts...> ctx;
-    ctx.name = get_name<T>();
     args::assign_subcommands(rank<1>{}, ctx, cmd);
     ctx.parse(nullptr, "-h", "--help", args::help("Show help"), 
         args::eager_callback([](std::nullptr_t, const auto& c, const argument&)
@@ -617,8 +627,12 @@ void parse(T& cmd, std::deque<std::string> a, Ts&&... xs)
 
             if (ctx[core].type == argument_type::none)
             {
-                ctx[core].write("");
-                if (core == "-h" or core == "--help") return;
+                if (ctx[core].write("")) return;
+                for(auto&& c:value) if (ctx[std::string("-") + c].write("")) return;
+            }
+            else if (not value.empty())
+            {
+                ctx[core].write(value);
             }
             else
             {
@@ -629,6 +643,10 @@ void parse(T& cmd, std::deque<std::string> a, Ts&&... xs)
         {
             if (ctx[core].write(x)) return;
             capture = ctx[core].type == argument_type::multiple;
+        }
+        else if (ctx.has_default_capture())
+        {
+            ctx[""].write(x);
         }
         else
         {
@@ -645,7 +663,6 @@ void parse(T& cmd, std::deque<std::string> a, Ts&&... xs)
                 throw std::runtime_error("flag: " + core + " expects only one argument.");
             }
         }
-
 
         a.pop_front();
     }
