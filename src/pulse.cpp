@@ -6,10 +6,12 @@
 #include <chrono>
 
 std::set<int> PulseAudio::_playing;
+std::chrono::seconds PulseAudio::_delay;
 
-PulseAudio::PulseAudio(std::shared_ptr<Machine> fsm, const Trigger_set& triggers)
+PulseAudio::PulseAudio(std::shared_ptr<Machine> fsm, const Trigger_set& triggers, std::chrono::seconds delay)
     : Trigger(fsm, triggers), _mainloop{nullptr}, _mainloop_api{nullptr}, _context{nullptr}, _signal{nullptr}
 {
+    PulseAudio::_delay = delay;
     initialize();
 }
 
@@ -157,7 +159,7 @@ void PulseAudio::subscribe_callback(pa_context *c, pa_subscription_event_type_t 
     {
         case PA_SUBSCRIPTION_EVENT_SINK_INPUT:
         {
-            pa_context_get_sink_input_info(c, idx, callback, nullptr);          
+            pa_context_get_sink_input_info(c, idx, callback, nullptr); 
             break;
         }
         default:
@@ -172,6 +174,8 @@ void PulseAudio::callback(pa_context *c, const pa_sink_input_info *i, int eol, v
 {
     if (!eol)
     {
+        std::this_thread::sleep_for(_delay);
+
         // i refers to what might be a trigger
         std::string app(pa_proplist_gets (i->proplist, "application.process.binary"));
 

@@ -54,8 +54,8 @@ struct nancho : args::group<nancho>
         }
 
         std::shared_ptr<Player> player = std::make_shared<Mpris>(player_binary);
-        std::shared_ptr<Machine> finite_state_machine = std::make_shared<Machine>(player, std::chrono::minutes(cooldown), std::chrono::seconds(delay));
-        std::shared_ptr<Trigger> trigger = std::make_shared<PulseAudio>(finite_state_machine, binaries_that_trigger_switch);
+        std::shared_ptr<Machine> finite_state_machine = std::make_shared<Machine>(player, std::chrono::minutes(cooldown));
+        std::shared_ptr<Trigger> trigger = std::make_shared<PulseAudio>(finite_state_machine, binaries_that_trigger_switch, std::chrono::seconds(delay));
 
         trigger->run();
 

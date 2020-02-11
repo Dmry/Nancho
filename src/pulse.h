@@ -16,9 +16,10 @@ class PulseAudio : public Trigger
         pa_context* _context;
         pa_signal_event* _signal;
         static std::set<int> _playing;
+        static std::chrono::seconds _delay;
 
     public:
-        PulseAudio(std::shared_ptr<Machine> fsm, const Trigger_set& triggers);
+        PulseAudio(std::shared_ptr<Machine> fsm, const Trigger_set& triggers, std::chrono::seconds delay);
         ~PulseAudio();
 
         bool initialize();

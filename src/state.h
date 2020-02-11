@@ -5,9 +5,6 @@
 
 #include <memory>
 #include <chrono>
-#include <vector>
-#include <future>
-#include <thread>
 
 class State;
 
@@ -15,12 +12,10 @@ class Machine
 {
     private:
         class std::shared_ptr<State> current;
-        std::vector<std::future<void>> pending_futures;
 
     public:
         Machine(std::shared_ptr<Player> player,
-                std::chrono::minutes cooldown = std::chrono::minutes(0),
-                std::chrono::seconds delay = std::chrono::seconds(0));
+                std::chrono::minutes cooldown = std::chrono::minutes(0));
 
         void set_current(std::shared_ptr<State> s);
         void play();
@@ -29,7 +24,6 @@ class Machine
 
         std::shared_ptr<Player> m_player;   
         std::chrono::minutes m_cooldown;
-        std::chrono::seconds m_delay;
 };
 
 class State
