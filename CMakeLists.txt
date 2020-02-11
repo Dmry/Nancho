@@ -4,6 +4,8 @@ project(Nancho VERSION 0.0.1)
 
 set (CMAKE_CXX_STANDARD 17)
 
+find_package (Threads)
+
 find_package(PkgConfig)
 
 pkg_check_modules(DBUS dbus-1)
@@ -33,6 +35,7 @@ add_executable(nancho ${nancho_SRC})
 
 target_link_libraries(nancho ${DBUS_LIBRARIES})
 target_link_libraries(nancho ${PULSE_LIBRARIES})
+target_link_libraries(nancho ${CMAKE_THREAD_LIBS_INIT})
 
 install(TARGETS nancho
         RUNTIME DESTINATION /usr/bin/)

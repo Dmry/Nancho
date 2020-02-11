@@ -180,8 +180,8 @@ void PulseAudio::callback(pa_context *c, const pa_sink_input_info *i, int eol, v
         // Corked: means stream is temporarily paused, e.g. firefox pausing a video stream
         if (it != m_triggers.end() and i->volume.values[0] != 0 and i->corked == 0)
         {
-            trigger(Player::State::PAUSE);
             _playing.emplace(i->index);
+            trigger(Player::State::PAUSE);
         }
         else if (it != m_triggers.end() and (i->volume.values[0] == 0 or i->corked == 1))
         {

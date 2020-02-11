@@ -23,18 +23,21 @@ struct nancho : args::group<nancho>
     std::string player_binary;
     Trigger::Trigger_set binaries_that_trigger_switch;
     size_t cooldown;
+    size_t delay;
     
     nancho() :
         player_binary{"spotify"},
         binaries_that_trigger_switch{"firefox"},
-        cooldown{0}
+        cooldown{0},
+        delay{0}
     {}
 
     template<class F>
     void parse(F f)
     {
         f(cooldown, "-c", "--cooldown", args::help("Time in minutes after which the music will no longer resume. 0 disables cooldown."));
-        f(binaries_that_trigger_switch, "-t", "--triggers", args::help("Names of the binaries that trigger a switch."));
+        f(delay, "-d", "--delay", args::help("Time in seconds to wait before pausing and resuming music."));
+        f(binaries_that_trigger_switch, "-t", "--trigger", args::help("Names of the binaries that trigger a switch."));
         f(player_binary, "-p", "--player", args::help("Name of the binary that is controlled by the switch."));
     }
 

@@ -1,7 +1,7 @@
 #include "state.h"
 
-Machine::Machine(std::shared_ptr<Player> player, std::chrono::minutes cooldown)
-    : m_player{player}, m_cooldown{cooldown}
+Machine::Machine(std::shared_ptr<Player> player, std::chrono::minutes cooldown, std::chrono::seconds delay)
+    : m_player{player}, m_cooldown{cooldown}, m_delay{delay}
 {
     fetch();
 }
@@ -34,12 +34,18 @@ void Machine::set_current(std::shared_ptr<State> s)
 
 void Machine::play()
 {
-    current->play(this);
+    auto f = std::async(std::launch::async, [this] () {
+        std::this_thread::sleep_for(m_delay);
+        current->play(this);
+    });
 }
 
 void Machine::pause()
 {
-    current->pause(this);
+    auto f = std::async(std::launch::async, [this] () {
+        std::this_thread::sleep_for(m_delay);
+        current->pause(this);
+    });
 }
 
 // Default response, only classes that change the state will overwrite
@@ -85,8 +91,9 @@ void Paused::play(Machine *m)
     }
 
     // Don't start playing if it wasn't paused by nancho
-    if (Player::State::PLAY == m_previous_state
-    and not cooldown_passed)
+    if (Player::State::PAUSE == m_current_state
+        and Player::State::PLAY == m_previous_state
+        and not cooldown_passed)
     {
         m->set_current(std::make_shared<Playing>(m_current_state));
         // delete this handled by shared pointer
@@ -97,7 +104,11 @@ void Paused::play(Machine *m)
 //Change state from playing to paused
 void Playing::pause(Machine *m)
 {
-    m->set_current(std::make_shared<Paused>(m_current_state));
-    // delete this handled by shared pointer
-    m->m_player->switch_state("Pause");
+    if (Player::State::PLAY == m_current_state
+        or Player::State::UNKNOWN == m_current_state)
+    {
+        m->set_current(std::make_shared<Paused>(m_current_state));
+        // delete this handled by shared pointer
+        m->m_player->switch_state("Pause");
+    }
 }
