@@ -26,9 +26,9 @@ matrix:
         - MATRIX_EVAL="CC=clang-9 && CXX=clang++99"
 
 before_script:
-  - mkdir build && meson setup build && cd build
+  - mkdir build && meson setup build
   - eval "${MATRIX_EVAL}"
 
 script:
 - gcc -v && g++ -v && cmake --version
-- meson compile
+- meson compile -C build
