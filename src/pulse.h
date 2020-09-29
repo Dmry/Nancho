@@ -16,10 +16,9 @@ class PulseAudio : public Trigger
         pa_context* _context;
         pa_signal_event* _signal;
         static std::set<int> _playing;
-        static std::chrono::seconds _delay;
 
     public:
-        PulseAudio(std::shared_ptr<Machine> fsm, const Trigger_set& triggers, std::chrono::seconds delay);
+        PulseAudio(std::shared_ptr<Machine> fsm, const Trigger_set& triggers);
         ~PulseAudio();
 
         bool initialize();
@@ -27,6 +26,7 @@ class PulseAudio : public Trigger
         void quit(int ret = 0);
         void destroy();
         
+        static std::chrono::seconds _delay;
 
     private:
         static void exit_signal_callback(pa_mainloop_api *m, pa_signal_event *e, int sig, void *userdata);
@@ -34,6 +34,7 @@ class PulseAudio : public Trigger
         static void subscribe_callback(pa_context *c, pa_subscription_event_type_t type, uint32_t idx, void *userdata);
         static void server_info_callback(pa_context *c, const pa_server_info *i, void *userdata);
         static void callback(pa_context *c, const pa_sink_input_info *i, int eol, void *userdata);
+        static void callback_execute(pa_context *c, const pa_sink_input_info *i, int eol, void *userdata);
 };
 
 #endif

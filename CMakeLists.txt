@@ -39,3 +39,4 @@ target_link_libraries(nancho ${CMAKE_THREAD_LIBS_INIT})
 
 install(TARGETS nancho
         RUNTIME DESTINATION /usr/bin/)
+install(FILES nancho.service DESTINATION /etc/systemd/user/)

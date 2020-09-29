@@ -44,12 +44,12 @@ void Machine::pause()
 }
 
 // Default response, only classes that change the state will overwrite
-void State::play(Machine *m [[maybe_unused]])
+void State::play(Machine *)
 {
 }
 
 // Default response, only classes that change the state will overwrite
-void State::pause(Machine *m [[maybe_unused]])
+void State::pause(Machine *)
 {
 }
 

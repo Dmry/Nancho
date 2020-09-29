@@ -8,10 +8,9 @@
 std::set<int> PulseAudio::_playing;
 std::chrono::seconds PulseAudio::_delay;
 
-PulseAudio::PulseAudio(std::shared_ptr<Machine> fsm, const Trigger_set& triggers, std::chrono::seconds delay)
+PulseAudio::PulseAudio(std::shared_ptr<Machine> fsm, const Trigger_set& triggers)
     : Trigger(fsm, triggers), _mainloop{nullptr}, _mainloop_api{nullptr}, _context{nullptr}, _signal{nullptr}
 {
-    PulseAudio::_delay = delay;
     initialize();
 }
 
@@ -103,13 +102,13 @@ PulseAudio::~PulseAudio()
     destroy();
 }
 
-void PulseAudio::exit_signal_callback(pa_mainloop_api *m, pa_signal_event *e, int sig, void *userdata)
+void PulseAudio::exit_signal_callback(pa_mainloop_api *, pa_signal_event *, int, void *userdata)
 {
     PulseAudio* pa = (PulseAudio*)userdata;
     if (pa) pa->quit();
 }
 
-void PulseAudio::server_info_callback(pa_context *c, const pa_server_info *i, void *userdata)
+void PulseAudio::server_info_callback(pa_context *, const pa_server_info *i, void *)
 {
     std::cout << "Nancho working on sink : " << i->default_sink_name << std::endl;
 }
@@ -151,7 +150,7 @@ void PulseAudio::context_state_callback(pa_context *c, void *userdata)
     }
 }
 
-void PulseAudio::subscribe_callback(pa_context *c, pa_subscription_event_type_t type, uint32_t idx, void *userdata)
+void PulseAudio::subscribe_callback(pa_context *c, pa_subscription_event_type_t type, uint32_t idx, void *)
 {
     unsigned facility = type & PA_SUBSCRIPTION_EVENT_FACILITY_MASK;
 
@@ -170,24 +169,17 @@ void PulseAudio::subscribe_callback(pa_context *c, pa_subscription_event_type_t 
     }
 }
 
-void PulseAudio::callback(pa_context *c, const pa_sink_input_info *i, int eol, void *userdata)
+void PulseAudio::callback_execute(pa_context *, const pa_sink_input_info *i, int eol, void *)
 {
     if (!eol)
     {
-        std::this_thread::sleep_for(_delay);
-
         // i refers to what might be a trigger
         std::string app(pa_proplist_gets (i->proplist, "application.process.binary"));
 
         auto it = m_triggers.find(app);
 
         // Corked: means stream is temporarily paused, e.g. firefox pausing a video stream
-        if (it != m_triggers.end() and i->volume.values[0] != 0 and i->corked == 0)
-        {
-            _playing.emplace(i->index);
-            trigger(Player::State::PAUSE);
-        }
-        else if (it != m_triggers.end() and (i->volume.values[0] == 0 or i->corked == 1))
+        if (it != m_triggers.end() and (i->volume.values[0] == 0 or i->corked == 1))
         {
             _playing.erase(i->index);
             if (_playing.empty())
@@ -195,15 +187,24 @@ void PulseAudio::callback(pa_context *c, const pa_sink_input_info *i, int eol, v
                 trigger(Player::State::PLAY);
             }
         }
-
-        // I __know__ this is highly undesirable coupling, but spotify's dbus really leaves me no other option
+        else if (it != m_triggers.end() and i->volume.values[0] != 0 and i->corked == 0)
+        {
+            _playing.emplace(i->index);
+            trigger(Player::State::PAUSE);
+        }
         else
         {
-            // Mpris dbus switches in the order of human time..
-            using namespace std::chrono_literals;
-            std::this_thread::sleep_for(0.1s);
-
             trigger(Player::State::UNKNOWN);
         }
+    }
+}
+
+void PulseAudio::callback(pa_context *c, const pa_sink_input_info *, int eol, void *userdata)
+{
+    if (!eol)
+    {
+        std::this_thread::sleep_for(_delay);
+
+        pa_context_get_sink_input_info_list(c, callback_execute, userdata);
     }
 }

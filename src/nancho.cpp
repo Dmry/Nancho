@@ -36,7 +36,7 @@ struct nancho : args::group<nancho>
     void parse(F f)
     {
         f(cooldown, "-c", "--cooldown", args::help("Time in minutes after which the music will no longer resume. 0 disables cooldown."));
-        f(delay, "-d", "--delay", args::help("Time in seconds to wait before pausing and resuming music."));
+        f(delay, "-d", "--delay", args::help("Time in seconds to wait before pausing music."));
         f(binaries_that_trigger_switch, "-t", "--trigger", args::help("Names of the binaries that trigger a switch."));
         f(player_binary, "-p", "--player", args::help("Name of the binary that is controlled by the switch."));
     }
@@ -53,9 +53,11 @@ struct nancho : args::group<nancho>
             player_binary = "spotify";
         }
 
+        PulseAudio::_delay = std::chrono::seconds(delay);
+
         std::shared_ptr<Player> player = std::make_shared<Mpris>(player_binary);
         std::shared_ptr<Machine> finite_state_machine = std::make_shared<Machine>(player, std::chrono::minutes(cooldown));
-        std::shared_ptr<Trigger> trigger = std::make_shared<PulseAudio>(finite_state_machine, binaries_that_trigger_switch, std::chrono::seconds(delay));
+        std::shared_ptr<Trigger> trigger = std::make_shared<PulseAudio>(finite_state_machine, binaries_that_trigger_switch);
 
         trigger->run();
 
