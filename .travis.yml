@@ -31,4 +31,4 @@ before_script:
 
 script:
 - gcc -v && g++ -v && cmake --version
-- cd build && meson compile
+- meson compile
