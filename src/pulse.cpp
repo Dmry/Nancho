@@ -15,6 +15,9 @@ PulseAudio::PulseAudio(std::shared_ptr<Machine> fsm, const Trigger_set& triggers
     : Trigger(fsm, triggers), _mainloop{nullptr}, _mainloop_api{nullptr}, _context{nullptr}, _signal{nullptr}
 {
     initialize();
+
+    // Get pulse in the right initial state
+    trigger(Player::State::UNKNOWN);
 }
 
 bool PulseAudio::initialize()
