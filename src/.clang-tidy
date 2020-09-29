@@ -1,0 +1,15 @@
+Checks:
+    '
+    *,
+    -modernize-use-trailing-return-type,
+    -llvm-header-guard,
+    cppcoreguidelines-init-variables'
+
+# cppcoreguidelines-init-variables
+# Doesn't register uniform initialization properly e.g. when using templates
+
+# llvm-header-guard
+# Complains about pragma once
+
+# modernize-use-trailing-return-type
+# No. we're not going to use trailing return types everywhere

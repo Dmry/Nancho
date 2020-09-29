@@ -19,7 +19,7 @@ class PulseAudio : public Trigger
 
     public:
         PulseAudio(std::shared_ptr<Machine> fsm, const Trigger_set& triggers);
-        ~PulseAudio();
+        virtual ~PulseAudio();
 
         bool initialize();
         int run() override;

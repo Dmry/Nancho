@@ -1,9 +1,12 @@
 #include "pulse.h"
+#include "spdlog/spdlog.h"
 
-#include <iostream>
+#include <algorithm>
 #include <cassert>
-#include <thread>
 #include <chrono>
+#include <iostream>
+#include <thread>
+
 
 std::set<int> PulseAudio::_playing;
 std::chrono::seconds PulseAudio::_delay;
@@ -110,7 +113,7 @@ void PulseAudio::exit_signal_callback(pa_mainloop_api *, pa_signal_event *, int,
 
 void PulseAudio::server_info_callback(pa_context *, const pa_server_info *i, void *)
 {
-    std::cout << "Nancho working on sink : " << i->default_sink_name << std::endl;
+    spdlog::info("Nancho working on sink : {}", i->default_sink_name);
 }
 
 void PulseAudio::context_state_callback(pa_context *c, void *userdata)
@@ -127,7 +130,7 @@ void PulseAudio::context_state_callback(pa_context *c, void *userdata)
             break;
 
         case PA_CONTEXT_READY:
-            std::cout << "Connected Nancho to PulseAudio." << std::endl;
+            spdlog::info("Connected Nancho to PulseAudio.");
             pa_context_get_server_info(c, server_info_callback, userdata);
 
             // Subscribe to sink events from the server. This is how we get
@@ -138,13 +141,13 @@ void PulseAudio::context_state_callback(pa_context *c, void *userdata)
 
         case PA_CONTEXT_TERMINATED:
             pa->quit(0);
-            std::cout << "PulseAudio connection terminated." << std::endl;
+            spdlog::critical("PulseAudio connection terminated.");
             break;
 
         case PA_CONTEXT_FAILED:
 
         default:
-            std::cerr << "Connection failure: " << pa_strerror(pa_context_errno(c)) << std::endl;
+            spdlog::error("Connection failure: {}", pa_strerror(pa_context_errno(c)));
             pa->quit(1);
             break;
     }
@@ -176,24 +179,44 @@ void PulseAudio::callback_execute(pa_context *, const pa_sink_input_info *i, int
         // i refers to what might be a trigger
         std::string app(pa_proplist_gets (i->proplist, "application.process.binary"));
 
-        auto it = m_triggers.find(app);
+        auto it = std::find(m_triggers.begin(), m_triggers.end(), app);
+
+        if (it != m_triggers.end())
+        {
+            spdlog::debug("Callback from registered trigger : {}", app);
+        }
 
         // Corked: means stream is temporarily paused, e.g. firefox pausing a video stream
         if (it != m_triggers.end() and (i->volume.values[0] == 0 or i->corked == 1))
         {
+            spdlog::debug("Erase _playing index {}", i->index);
+            spdlog::debug("Volume : {}  Corked : {}", i->volume.values[0], i->corked);
+
             _playing.erase(i->index);
             if (_playing.empty())
             {
+                spdlog::debug("_playing empty");
+                spdlog::debug("Player state PLAY");
                 trigger(Player::State::PLAY);
             }
         }
         else if (it != m_triggers.end() and i->volume.values[0] != 0 and i->corked == 0)
         {
+            spdlog::debug("Erase _playing index {}", i->index);
+            spdlog::debug("Volume : {}  Corked : {}", i->volume.values[0], i->corked);
+
+            spdlog::debug("Adding new trigger : _playing index {}", i->index);
+
             _playing.emplace(i->index);
+
+            spdlog::debug("Player state PAUSE");
+
             trigger(Player::State::PAUSE);
         }
-        else
+        else if (it != m_triggers.end())
         {
+            spdlog::debug("Player state UNKNOWN");
+
             trigger(Player::State::UNKNOWN);
         }
     }

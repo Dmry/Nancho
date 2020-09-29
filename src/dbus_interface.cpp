@@ -1,4 +1,5 @@
 #include "dbus_interface.h"
+#include "spdlog/spdlog.h"
 
 #include <iostream>
 
@@ -16,8 +17,8 @@ void DBus::connect()
 {
     if ( nullptr == (_dbus_conn = dbus_bus_get(DBUS_BUS_SESSION, &_dbus_error)) )
     {
-        perror(_dbus_error.name);
-        perror(_dbus_error.message);
+        spdlog::error(_dbus_error.name);
+        spdlog::error(_dbus_error.message);
         throw DBUS_ERROR::ERROR_INIT;
     }
 }
@@ -74,15 +75,15 @@ void DBus::send(DBusMessage * dbus_msg, DBusMessage ** dbus_reply)
     if ( nullptr == dbus_msg )
     {
         dbus_connection_unref(_dbus_conn);
-        perror("ERROR: dbus_message_new_method_call - Unable to allocate memory for the message!");
+        spdlog::error("ERROR: dbus_message_new_method_call - Unable to allocate memory for the message!");
     // Invoke remote procedure call, block for response
     } else if ( nullptr == (*dbus_reply = dbus_connection_send_with_reply_and_block(_dbus_conn, dbus_msg, DBUS_TIMEOUT_USE_DEFAULT, &_dbus_error)) )
     {
         if (!true /*verbose*/)
         {
             dbus_message_unref(dbus_msg);
-            perror(_dbus_error.name);
-            perror(_dbus_error.message);
+            spdlog::error(_dbus_error.name);
+            spdlog::error(_dbus_error.message);
             std::cerr << "The above means that your target is probably not running" << std::endl;
         }
     }

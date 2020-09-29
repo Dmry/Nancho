@@ -11,7 +11,7 @@ class Mpris : public Player
 {
     public:
         Mpris(const std::string& player);
-        ~Mpris();
+        virtual ~Mpris();
 
         void switch_state(const std::string&) override;
         Player::State fetch_status() override;

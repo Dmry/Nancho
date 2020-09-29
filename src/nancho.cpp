@@ -1,73 +1,68 @@
+#include <cxxopts.hpp>
 #include <dbus/dbus.h>
-#include "args.hpp"
+#include <spdlog/spdlog.h>
 
+#include "mpris.h"
 #include "nancho.h"
 #include "player.h"
-#include "trigger.h"
-#include "mpris.h"
-#include "state.h"
 #include "pulse.h"
+#include "state.h"
+#include "trigger.h"
 
-#include <memory>
-#include <iostream>
-#include <cstdlib>
 #include <chrono>
+#include <cstdlib>
+#include <iostream>
+#include <memory>
 
-struct nancho : args::group<nancho>
+int main(int argc, char *argv[])
 {
-    static const char* help()
+    cxxopts::Options options("Nancho", "Automatically pause music player when a trigger starts playing sound");
+
+    options.add_options()
+        ("c,cooldown", "Time in minutes after which the music will no longer resume. 0 disables cooldown", cxxopts::value<size_t>()->default_value("0"))
+        ("d,delay", "Time in seconds to wait before pausing music", cxxopts::value<size_t>()->default_value("0"))
+        ("trigger", "Names of the binaries that trigger a switch", cxxopts::value<Trigger::Trigger_set>()->default_value("firefox"))
+        ("p,player", "Name of the binary that is controlled by the switch", cxxopts::value<std::string>()->default_value("spotify"))
+		("debug", "Enable debugging")
+        ("h,help", "Print this help message")
+    ;
+
+    auto result = options.parse(argc, argv);
+
+    if (result.count("help"))
     {
-        return "Automatically pause music player when a trigger starts playing sound.";
+      std::cout << options.help() << std::endl;
+      exit(0);
     }
 
-    std::string player_binary;
-    Trigger::Trigger_set binaries_that_trigger_switch;
-    size_t cooldown;
-    size_t delay;
-    
-    nancho() :
-        player_binary{},
-        binaries_that_trigger_switch{},
-        cooldown{0},
-        delay{0}
-    {}
+	if (result.count("debug"))
+	{
+		spdlog::set_level(spdlog::level::debug);  
+		spdlog::debug("Debug messages enabled");
+	}
 
-    template<class F>
-    void parse(F f)
-    {
-        f(cooldown, "-c", "--cooldown", args::help("Time in minutes after which the music will no longer resume. 0 disables cooldown."));
-        f(delay, "-d", "--delay", args::help("Time in seconds to wait before pausing music."));
-        f(binaries_that_trigger_switch, "-t", "--trigger", args::help("Names of the binaries that trigger a switch."));
-        f(player_binary, "-p", "--player", args::help("Name of the binary that is controlled by the switch."));
-    }
+    auto delay = result["delay"].as<size_t>();
+	auto cooldown = result["cooldown"].as<size_t>();
+	auto triggers = result["trigger"].as<Trigger::Trigger_set>();
+	auto player_str = result["player"].as<std::string>();
 
-    void run()
-    {
-        if (binaries_that_trigger_switch.empty())
-        {
-            binaries_that_trigger_switch.insert("firefox");
-        }
+	PulseAudio::_delay = std::chrono::seconds(delay);
+    std::shared_ptr<Player> player = std::make_shared<Mpris>(player_str);
+    std::shared_ptr<Machine> finite_state_machine = std::make_shared<Machine>(player, std::chrono::minutes(cooldown));
+    std::shared_ptr<Trigger> trigger = std::make_shared<PulseAudio>(finite_state_machine, triggers);
 
-        if (player_binary.empty())
-        {
-            player_binary = "spotify";
-        }
+	spdlog::set_level(spdlog::level::debug);
 
-        PulseAudio::_delay = std::chrono::seconds(delay);
+	spdlog::info("Controlling {}", player_str);
+	spdlog::info("Delay is {} seconds, cooldown is {} minutes", delay, cooldown);
+	spdlog::info("Listening for triggers:");
+	
+	for (auto& trigger: triggers)
+	{
+		spdlog::info("{}", trigger);
+	}
 
-        std::shared_ptr<Player> player = std::make_shared<Mpris>(player_binary);
-        std::shared_ptr<Machine> finite_state_machine = std::make_shared<Machine>(player, std::chrono::minutes(cooldown));
-        std::shared_ptr<Trigger> trigger = std::make_shared<PulseAudio>(finite_state_machine, binaries_that_trigger_switch);
-
-        trigger->run();
-
-        return;
-    }
-};
-
-int main(int argc , const char* argv[])
-{
-    args::parse<nancho>(argc, argv);
+    trigger->run();
 
     return 0;
 }

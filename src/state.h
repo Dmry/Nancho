@@ -29,6 +29,8 @@ class Machine
 class State
 {
     public:
+        virtual ~State() {};
+        
         virtual void play(Machine *m);
         virtual void pause(Machine *m);
 
@@ -42,7 +44,7 @@ class Playing: public State
 {
     public:
         Playing(Player::State);
-        ~Playing();
+        virtual ~Playing();
         void pause(Machine *m) override;
         // Does not override play, keeps its default behavior
 };
@@ -51,7 +53,7 @@ class Paused: public State
 {
     public:
         Paused(Player::State);
-        ~Paused();
+        virtual ~Paused();
         void play(Machine *m) override;
         // Does not override pause, keeps its default behavior
 };

@@ -5,15 +5,15 @@
 #include "player.h"
 
 #include <memory>
-#include <set>
+#include <vector>
 
 class Trigger
 {
     public:
-        using Trigger_set = std::set<std::string>;
+        using Trigger_set = std::vector<std::string>;
         
         Trigger(std::shared_ptr<Machine> fsm, const Trigger_set& triggers);
-        ~Trigger();
+        virtual ~Trigger();
 
         static void trigger(Player::State to_state);
         virtual int run() = 0;

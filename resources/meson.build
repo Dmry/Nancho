@@ -1,0 +1,1 @@
+install_data(['nancho.service'], install_dir : '/etc/systemd/user')

@@ -2,14 +2,14 @@
 #define PLAYER_H
 
 #include <map>
-#include <set>
+#include <vector>
 #include <string>
 
 class Player
 {
     public:
         Player(const std::string&);
-        ~Player();
+        virtual ~Player();
 
         enum class State {
             PLAY,
