@@ -23,7 +23,7 @@ meson install
 Then as normal user
 
 ```
-    systemctl --user enable nancho
+systemctl --user enable nancho
 ```
 
 ### Running from commandline
