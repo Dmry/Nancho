@@ -2,7 +2,7 @@ language: cpp
 
 matrix:
   include:
-    - dist: bionic
+    - dist: focal
       addons:
         apt:
           packages:
@@ -13,7 +13,7 @@ matrix:
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
 
-    - dist: bionic
+    - dist: focal
       addons:
         apt:
           update: true
