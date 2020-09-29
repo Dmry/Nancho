@@ -9,8 +9,10 @@ matrix:
             - g++-7
             - libdbus-1-dev
             - libpulse-dev
+            - meson
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+
     - dist: bionic
       addons:
         apt:
@@ -19,14 +21,14 @@ matrix:
             - clang-9
             - libdbus-1-dev
             - libpulse-dev
+            - meson
       env:
         - MATRIX_EVAL="CC=clang-9 && CXX=clang++99"
 
 before_script:
-  - mkdir build
-  - cd build
-  - cmake ..
+  - mkdir build && meson setup build && cd build
   - eval "${MATRIX_EVAL}"
 
 script:
-  - make
+- gcc -v && g++ -v && cmake --version
+- cd build && meson compile
