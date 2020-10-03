@@ -36,12 +36,12 @@ def main():
         except:
             pass
     else:
-        for path_str in directory_tree:
-            Path(f'{target_dir}/{path_str}').mkdir(parents=True, exist_ok=True)
 
         copytree("DEBIAN", f'{target_dir}/DEBIAN')
 
         for source, target in targets:
+            path = Path(f'{target_dir}/{target}')
+            path.parent.mkdir(parents=True, exist_ok=True)
             copyfile(source, f'{target_dir}/{target}')
 
         chmod(f"{target_dir}/usr/local/bin/nancho", stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH)
