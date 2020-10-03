@@ -1,0 +1,12 @@
+Source: nancho
+Version: 0.0.2
+Section: sound
+Priority: optional
+Maintainer: Daniël Emmery <daniel.emmery@protonmail.com>
+Build-Depends: debhelper (>=10), meson, libdbus-1-dev, libpulse-dev
+Standards-Version: 4.5.0
+Homepage: https://github.com/dmry/nancho
+Package: nancho
+Architecture: amd64
+Depends: libpulse0, libdbus-1-3
+Description: Automatically pause MPRIS music players (e.g. spotify) when another application starts playing audio.
